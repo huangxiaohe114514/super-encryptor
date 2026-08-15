@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super Encryptor - 超级加密工具</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #12121a;
+      --border:    #1e1e2e;
+      --text:      #e2e2ef;
+      --muted:     #6b6b8a;
+      --accent:    #7c3aed;
+      --accent2:   #06b6d4;
+      --green:     #10b981;
+      --orange:    #f59e0b;
+      --red:       #ef4444;
+      --pink:      #ec4899;
+      --radius:    12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10,10,15,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: .9rem;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-btn {
+      background: var(--accent); color: #fff; border: none;
+      padding: .4rem 1rem; border-radius: 8px; font-size: .85rem;
+      cursor: pointer; text-decoration: none; transition: opacity .2s;
+    }
+    .nav-btn:hover { opacity: .85; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 6rem 2rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 40%, rgba(124,58,237,.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 70% 60%, rgba(6,182,212,.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-content { position: relative; max-width: 720px; }
+    .badge {
+      display: inline-block; padding: .3rem .8rem; border-radius: 20px;
+      background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      color: var(--accent); font-size: .8rem; font-weight: 600;
+      margin-bottom: 1.5rem; letter-spacing: .03em;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800;
+      line-height: 1.15; margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, #fff 30%, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.15rem; color: var(--muted);
+      max-width: 520px; margin: 0 auto 2.5rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .75rem 1.6rem; border-radius: 10px; font-size: .95rem;
+      font-weight: 600; text-decoration: none; transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #6d28d9);
+      color: #fff; box-shadow: 0 4px 24px rgba(124,58,237,.35);
+    }
+    .btn-secondary {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); }
+
+    /* ── Floating lock icon animation ── */
+    .lock-float {
+      position: absolute; font-size: 2rem; opacity: .12;
+      animation: float 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .lock-float:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
+    .lock-float:nth-child(2) { top: 25%; right: 12%; animation-delay: 1s; font-size: 1.5rem; }
+    .lock-float:nth-child(3) { bottom: 20%; left: 15%; animation-delay: 2s; font-size: 1.8rem; }
+    .lock-float:nth-child(4) { bottom: 30%; right: 8%; animation-delay: 3s; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-18px) rotate(5deg); }
+    }
+
+    /* ── Section通用 ── */
+    section { padding: 5rem 2rem; }
+    .section-title {
+      text-align: center; margin-bottom: 3rem;
+    }
+    .section-title h2 {
+      font-size: 2rem; font-weight: 700; margin-bottom: .5rem;
+    }
+    .section-title p { color: var(--muted); }
+    .container { max-width: 1080px; margin: 0 auto; }
+
+    /* ── Features ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      transition: border-color .2s, transform .15s;
+    }
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 1rem;
+    }
+    .fi-purple { background: rgba(124,58,237,.15); }
+    .fi-cyan   { background: rgba(6,182,212,.15); }
+    .fi-green  { background: rgba(16,185,129,.15); }
+    .fi-orange { background: rgba(245,158,11,.15); }
+    .fi-red    { background: rgba(239,68,68,.15); }
+    .fi-pink   { background: rgba(236,72,153,.15); }
+    .feature-card h3 { font-size: 1.05rem; margin-bottom: .4rem; }
+    .feature-card p  { color: var(--muted); font-size: .9rem; }
+
+    /* ── Algorithms ── */
+    .algo-section { background: var(--surface); }
+    .algo-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--bg); border-radius: var(--radius); overflow: hidden;
+    }
+    .algo-table th, .algo-table td {
+      padding: 1rem 1.5rem; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .algo-table th {
+      background: rgba(124,58,237,.08);
+      font-weight: 600; font-size: .85rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .algo-table tr:last-child td { border-bottom: none; }
+    .algo-table td:first-child {
+      font-weight: 600; color: var(--accent2);
+    }
+    .algo-badge {
+      display: inline-block; padding: .15rem .5rem; border-radius: 6px;
+      background: rgba(124,58,237,.12); color: var(--accent);
+      font-size: .78rem; font-weight: 600; margin-left: .5rem;
+    }
+    .layer-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: .8rem; font-weight: 700; margin-right: .5rem;
+    }
+
+    /* ── Format ── */
+    .format-block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: .9rem; line-height: 2;
+      overflow-x: auto;
+    }
+    .format-block .tag { color: var(--accent2); }
+    .format-block .comment { color: var(--muted); }
+
+    /* ── Install ── */
+    .install-steps {
+      display: grid; gap: 1rem; max-width: 600px; margin: 0 auto;
+    }
+    .step {
+      display: flex; gap: 1.2rem; align-items: flex-start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.4rem;
+    }
+    .step-num {
+      flex-shrink: 0; width: 32px; height: 32px;
+      border-radius: 50%; background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .85rem;
+    }
+    .step h4 { font-size: .95rem; margin-bottom: .3rem; }
+    .step p  { color: var(--muted); font-size: .88rem; }
+    .code-block {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: .8rem 1rem;
+      font-family: 'Fira Code', monospace; font-size: .85rem;
+      color: var(--accent2); margin-top: .5rem;
+      overflow-x: auto;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem; text-align: center;
+      color: var(--muted); font-size: .85rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero h1 { font-size: 2rem; }
+      .algo-table th, .algo-table td { padding: .7rem 1rem; font-size: .85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-logo">🔐 Super Encryptor</div>
+  <ul class="nav-links">
+    <li><a href="#features">功能</a></li>
+    <li><a href="#algorithms">算法</a></li>
+    <li><a href="#format">格式</a></li>
+    <li><a href="#install">安装</a></li>
+  </ul>
+  <a href="https://github.com/huangxiaohe114514/super-encryptor" class="nav-btn">GitHub</a>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <span class="lock-float">🔒</span>
+  <span class="lock-float">🛡️</span>
+  <span class="lock-float">🔐</span>
+  <span class="lock-float">📦</span>
+  <div class="hero-content">
+    <span class="badge">v2.0 · 开源免费</span>
+    <h1>5 层加密，让你的文件万无一失</h1>
+    <p>AES-256 + XOR + Base64 + 凯撒位移 + 比特反转，每一层都是不可逆的深渊。选择文件、输入密码、一键加密，敏感信息从此消失。</p>
+    <div class="hero-actions">
+      <a href="#install" class="btn btn-primary">⬇ 立即安装</a>
+      <a href="https://github.com/huangxiaohe114514/super-encryptor" class="btn btn-secondary" target="_blank">⭐ View on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section id="features">
+  <div class="container">
+    <div class="section-title">
+      <h2>功能特性</h2>
+      <p>简洁界面，强大加密，为隐私而生</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon fi-purple">📁</div>
+        <h3>一键加密</h3>
+        <p>选择文件即可加密，自动生成 .lock 密文文件，原文件自动销毁。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-cyan">🔓</div>
+        <h3>智能解密</h3>
+        <p>从文件头读取原始文件名，解密后扩展名完整还原，不依赖文件名规律。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-green">🔒</div>
+        <h3>5 层加密</h3>
+        <p>AES-256-CBC、XOR、Base64、凯撒位移、比特反转，层层叠加，坚不可摧。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-orange">🎲</div>
+        <h3>乱码保护</h3>
+        <p>密文转换为经典乱码字符，即使文件被意外打开也无法阅读内容。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-red">🔑</div>
+        <h3>密钥安全派生</h3>
+        <p>使用 PBKDF2-HMAC-SHA256 从密码安全派生 AES 密钥，抗暴力破解。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-pink">💀</div>
+        <h3>自动清理</h3>
+        <p>加密完成后自动删除原始文件，不留任何痕迹，干净利落。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Algorithms ── -->
+<section id="algorithms" class="algo-section">
+  <div class="container">
+    <div class="section-title">
+      <h2>加密算法层</h2>
+      <p>数据流经 5 层处理，每层都有独特的变换逻辑</p>
+    </div>
+    <table class="algo-table">
+      <thead>
+        <tr><th>层级</th><th>算法</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="layer-num">1</span>XOR 异或</td>
+          <td>XOR Cipher</td>
+          <td>用派生密钥逐字节异或，打乱原始字节分布</td>
+        </tr>
+        <tr>
+          <td><span class="layer-num">2</span>AES-256-CBC</td>
+          <td>AES <span class="algo-badge">Industry Standard</span></td>
+          <td>256 位密钥 + 随机 IV，行业标准对称加密</td>
+        </tr>
+        <tr>
+          <td><span class="layer-num">3</span>Base64 编码</td>
+          <td>Base64</td>
+          <td>将二进制数据转为可打印字符，增加一层编码屏障</td>
+        </tr>
+        <tr>
+          <td><span class="layer-num">4</span>凯撒位移</td>
+          <td>Caesar +7</td>
+          <td>每个字节偏移 +7，古典密码的现代应用</td>
+        </tr>
+        <tr>
+          <td><span class="layer-num">5</span>比特反转</td>
+          <td>Bit Reversal</td>
+          <td>每个字节的 8 个二进制位完全反转，彻底打乱结构</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── File Format ── -->
+<section id="format">
+  <div class="container">
+    <div class="section-title">
+      <h2>.lock 文件格式</h2>
+      <p>密文文件结构清晰，确保解密时能完整还原原始文件</p>
+    </div>
+    <div class="format-block">
+      <span class="tag">[4 bytes]</span> <span class="comment">// 原文件名长度（大端序）</span><br>
+      <span class="tag">[N bytes]</span> <span class="comment">// 原文件名（UTF-8 编码）</span><br>
+      <span class="tag">[16 bytes]</span> <span class="comment">// salt（PBKDF2 派生密钥用）</span><br>
+      <span class="tag">[...bytes]</span> <span class="comment">// 乱码密文（5 层加密结果）</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Install ── -->
+<section id="install" class="algo-section">
+  <div class="container">
+    <div class="section-title">
+      <h2>安装与运行</h2>
+      <p>两条命令，即刻开始加密</p>
+    </div>
+    <div class="install-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>克隆仓库</h4>
+          <p>从 GitHub 下载项目代码</p>
+          <div class="code-block">git clone https://github.com/huangxiaohe114514/super-encryptor.git</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>安装依赖</h4>
+          <p>需要 Python 3.8+，安装 PyQt6 和 pycryptodome</p>
+          <div class="code-block">pip install pyqt6 pycryptodome</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>启动应用</h4>
+          <p>运行主程序，打开图形界面</p>
+          <div class="code-block">python super_encryptor.py</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>🔐 Super Encryptor · 开源免费 · <a href="https://github.com/huangxiaohe114514/super-encryptor" target="_blank">GitHub</a></p>
+</footer>
+
+</body>
+</html>
